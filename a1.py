@@ -38,16 +38,9 @@ except NameError:
     queries = np.random.choice([-1, +1], size=(n_queries, n_entries))
     query_results = np.array(query(challenge_id, queries))
 
-#(queries @ np.ones(256)).shape
-
-# c = np.array((-1, 4))
-# A_ub = np.array(((-3,1),(1,2),(0,-1)))
-# b_ub = np.array((6,4,3))
-# res = linprog(c, A_ub, b_ub, bounds=(None,None))
-
+# Reconstruction using linprog
 noise = 38
-#c = np.ones(512),
-c = np.block([np.ones(256), np.ones(256)])
+c = np.ones(512)
 A_ub = np.block([
     [+queries, -queries],
     [-queries, +queries]
@@ -57,14 +50,11 @@ b_ub = np.block([
     noise-query_results
 ])
 res = linprog(c, A_ub, b_ub, bounds = (0,1))
-
-res2 = lsq_linear(queries, query_results, bounds=(-1, 1))
-
-print(res)
-# best_query_number = np.argmax(query_results)
-# best_query = queries[best_query_number]
-r2 = (res2.x > 0).astype(np.int64)*2-1
 r = ((res.x[256:]-res.x[:256]) < 0).astype(np.int64)*2-1
+
+# Reconstruction using lsq_linear
+res2 = lsq_linear(queries, query_results, bounds=(-1, 1))
+r2 = (res2.x > 0).astype(np.int64)*2-1
 
 best_query_result = submit(challenge_id, r2)
 print(
